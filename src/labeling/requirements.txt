@@ -1,0 +1,10 @@
+datasets
+transformers
+bitsandbytes>=0.46.1
+accelerate
+pandas
+numpy
+torch
+scikit-learn
+tqdm
+PyYAML
