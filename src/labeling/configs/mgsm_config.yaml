@@ -1,0 +1,30 @@
+# Configuration for MGSM Labeling
+
+data:
+  tsv_url: "https://huggingface.co/datasets/juletxara/mgsm/resolve/main/mgsm_en.tsv"
+  output_dir: "./data/mgsm-inference-results"
+  final_output: "./data/mgsm-inference-results/mgsm_difficulty_labels.csv"
+
+models:
+  run_order:
+    - "Mistral-7B"
+    - "Qwen2.5-7B"
+    - "OpenChat-3.5"
+  
+  details:
+    "Mistral-7B":
+      model_id: "mistralai/Mistral-7B-Instruct-v0.2"
+      device: "cuda:0"
+    "Qwen2.5-7B":
+      model_id: "Qwen/Qwen2.5-7B-Instruct"
+      device: "cuda:0"
+    "OpenChat-3.5":
+      model_id: "openchat/openchat-3.5-0106"
+      device: "cuda:0"
+
+scoring:
+  single_rater_thresholds:
+    easy: 2.0
+    medium: 3.0
+  high_disagreement_threshold: 1.0
+  alpha_warning_threshold: 0.6

@@ -1,0 +1,28 @@
+# Configuration for MMLU Labeling
+
+data:
+  dataset_name: "CohereLabs/Global-MMLU"
+  language: "en"
+  split: "test"
+  output_dir: "./data/mmlu-inference-results"
+  final_output: "./data/mmlu-inference-results/mmlu_difficulty_labels.csv"
+
+inference:
+  target_model: "Mistral-7B" # Overridden by --model arg if needed
+  max_new_tokens: 10
+  batch_size: 16
+  flush_every: 100
+
+models:
+  run_order:
+    - "Mistral-7B"
+    - "Qwen2.5-7B"
+    - "OpenChat-3.5"
+  
+  details:
+    "Mistral-7B":
+      model_id: "mistralai/Mistral-7B-Instruct-v0.2"
+    "Qwen2.5-7B":
+      model_id: "Qwen/Qwen2.5-7B-Instruct"
+    "OpenChat-3.5":
+      model_id: "openchat/openchat-3.5-0106"
