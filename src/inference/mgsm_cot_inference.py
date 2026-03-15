@@ -5,14 +5,14 @@ import cohere
 import pandas as pd
 from time import sleep
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from configs import API_KEY, MODEL_NAME, LANG_TO_FULL_NAME, mgsm
 
 co = cohere.ClientV2(API_KEY)
 
 ALL_LANGUAGES = ["zh"]
 
-OUTPUT_DIR = f"../results/cot_inference/mgsm/{MODEL_NAME}"
+OUTPUT_DIR = f"./results/cot_inference/mgsm/{MODEL_NAME}"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 

@@ -5,7 +5,7 @@ import cohere
 import pandas as pd
 from time import sleep
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from configs import API_KEY, MODEL_NAME, ALL_LANGUAGES, LANG_TO_FULL_NAME, mmlu
 
 co = cohere.ClientV2(API_KEY)
