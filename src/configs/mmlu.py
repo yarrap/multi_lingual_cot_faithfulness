@@ -1,3 +1,8 @@
+import os
+from .common import DATASETS_DIR, MMLU_INFERENCE_DIR
+
+OUTPUT_DIR = MMLU_INFERENCE_DIR
+
 LANG_TO_INSTRUCTIONS = {
     "en": """Answer the following multiple choice question. Think step by step before giving your final answer. Give the reasoning steps before giving the final answer on the last line by itself in the format of "Answer: X" where X is one of A, B, C, or D. Do not add anything other than the letter after "Answer:".
 
@@ -61,11 +66,11 @@ Based on the reasoning above, give the final answer only in the format "{answer_
     "sw": """{question_prompt}
 Hapa chini ni utaratibu wa kufikiri hadi sasa:
 {cot_variant}
-Kulingana na hoja hapo juu, toa jibu la mwisho tu katika muundo wa "{answer_prefix} X" ambapo X ni A, B, C, au D.""",
+Kulingana na hoja hapo juu, toa jibu la mwisho tu katika muundo wa "{answer_prefix} X" ambapo X ni moja ya A, B, C, au D.""",
     "te": """{question_prompt}
 ఇప్పటివరకు ఉన్న తార్కికత క్రింద ఇవ్వబడింది:
 {cot_variant}
-పై తార్కికత ఆధారంగా, మీ తుది సమాధానాన్ని "{answer_prefix} X" ఫార్మాట్‌లో మాత్రమే ఇవ్వండి, ఇక్కడ X అనేది A, B, C, లేదా D.""",
+పై తార్కికత ఆధారంగా, మీ తుది సమాధానాన్ని "{answer_prefix} X" ఫార్మాట్‌లో మాత్రమే ఇవ్వండి, ఇక్కడ X అనేది ఏ, బి, సి, లేదా డి.""",
     "zh": """{question_prompt}
 以下是目前的推理过程：
 {cot_variant}
@@ -81,17 +86,9 @@ LANG_TO_ANSWER_PREFIX = {
 }
 
 LANG_TO_DATA_PATH = {
-    "en": "./datasets/mmlu_en.csv",
-    "bn": "./datasets/mmlu_bn.csv",
-    "sw": "./datasets/mmlu_sw.csv",
-    "te": "./datasets/mmlu_te.csv",
-    "zh": "./datasets/mmlu_zh.csv",
+    lang: os.path.join(DATASETS_DIR, f"mmlu_{lang}.csv") for lang in ["en", "bn", "sw", "te", "zh"]
 }
 
 LANG_TO_INFERENCE_PATH = {
-    "en": "results/cot_inference/mmlu/tiny-aya-global/cot_en.csv",
-    "bn": "results/cot_inference/mmlu/tiny-aya-global/cot_bn.csv",
-    "sw": "results/cot_inference/mmlu/tiny-aya-global/cot_sw.csv",
-    "te": "results/cot_inference/mmlu/tiny-aya-global/cot_te.csv",
-    "zh": "results/cot_inference/mmlu/tiny-aya-global/cot_zh.csv",
+    lang: os.path.join(MMLU_INFERENCE_DIR, f"cot_{lang}.csv") for lang in ["en", "bn", "sw", "te", "zh"]
 }

@@ -5,21 +5,16 @@ Freda Shi, Mirac Suzgun, Markus Freitag, Xuezhi Wang, Suraj Srivats, Soroush Vos
 https://arxiv.org/abs/2210.03057
 """
 
-import sys
 import os
 import re
 import csv
-
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
-from configs import ALL_LANGUAGES, mgsm
-
+from src.configs import ALL_LANGUAGES, mgsm
 
 def parse_answer(answer: str, answer_prefix: str) -> str:
     if answer_prefix not in answer:
         return ""
 
     answer_text = answer.split(answer_prefix)[-1].strip()
-
     # find all the numbers (including decimals) in the string
     numbers = re.findall(r"\d+\.?\d*", answer_text.replace(",", ""))
 

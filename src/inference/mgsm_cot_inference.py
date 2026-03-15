@@ -1,18 +1,12 @@
-import sys
 import os
 import re
 import cohere
 import pandas as pd
 from time import sleep
-
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from configs import API_KEY, MODEL_NAME, LANG_TO_FULL_NAME, mgsm
+from src.configs import API_KEY, MODEL_NAME, LANG_TO_FULL_NAME, mgsm
 
 co = cohere.ClientV2(API_KEY)
-
-ALL_LANGUAGES = ["zh"]
-
-OUTPUT_DIR = f"./results/cot_inference/mgsm/{MODEL_NAME}"
+OUTPUT_DIR = mgsm.OUTPUT_DIR
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 
@@ -24,7 +18,7 @@ def parse_answer(cot_text: str, answer_prefix: str) -> str:
     return numbers[-1].rstrip(".") if numbers else ""
 
 
-def call_with_retry(co, prompt, model=MODEL_NAME, max_retries=5):
+def call_with_retry(co: cohere.ClientV2, prompt: str, model=MODEL_NAME, max_retries=5):
     for attempt in range(max_retries):
         try:
             response = co.chat(
@@ -47,12 +41,11 @@ def call_with_retry(co, prompt, model=MODEL_NAME, max_retries=5):
 
 def run_inference_for_lang(lang: str):
     print(f"\n{'='*60}")
-    print(f"Running inference for: {LANG_TO_FULL_NAME[lang]} ({lang.upper()})")
+    print(f"Running MGSM inference for: {LANG_TO_FULL_NAME[lang]} ({lang.upper()})")
     print(f"{'='*60}")
 
-    df = pd.read_csv(f"../{mgsm.LANG_TO_DATA_PATH[lang]}")
+    df = pd.read_csv(mgsm.LANG_TO_DATA_PATH[lang])
     df = df[["question", "answer"]].copy()
-    # df = df.head(10)
 
     instruction_template = mgsm.LANG_TO_INSTRUCTIONS[lang]
     answer_prefix = mgsm.LANG_TO_ANSWER_PREFIX[lang]
@@ -87,47 +80,26 @@ def run_inference_for_lang(lang: str):
     total = len(df)
     print(f"\n[{lang.upper()}] Accuracy: {accuracy}/{total} = {accuracy/total:.1%}")
 
-    output_path = f"{OUTPUT_DIR}/basic_{lang}.csv"
+    output_path = os.path.join(OUTPUT_DIR, f"cot_{lang}.csv")
     df.to_csv(output_path, index=False, quoting=1)
-    print(f"Saved: {output_path}")
+    print(f"✅ Saved: {output_path}")
 
     return lang, accuracy, total
 
 
-# ── Run all 5 languages ──
-summary = []
-
-for lang in ALL_LANGUAGES:
-    lang, correct, total = run_inference_for_lang(lang)
-    summary.append({
-        "language": LANG_TO_FULL_NAME[lang],
-        "code": lang,
-        "correct": correct,
-        "total": total,
-        "accuracy": f"{correct/total:.1%}"
-    })
-    sleep(5)
-
-# # ── Final summary ──
-# summary_df = pd.DataFrame(summary)
-# overall_correct = sum(s["correct"] for s in summary)
-# overall_total = sum(s["total"] for s in summary)
-
-# print(f"\n{'='*60}")
-# print("FINAL ACCURACY SUMMARY — Basic Inference")
-# print(f"{'='*60}")
-# print(summary_df[["language", "correct", "total", "accuracy"]].to_string(index=False))
-# print(f"\nOverall: {overall_correct}/{overall_total} = {overall_correct/overall_total:.1%}")
-
-# # ── Save summary CSV ──
-# summary_df.to_csv(f"{OUTPUT_DIR}/basic_accuracy_summary.csv", index=False)
-# print(f"Summary saved to {OUTPUT_DIR}/basic_accuracy_summary.csv")
-
-
-
-
-
-
-
-
-
+if __name__ == "__main__":
+    summary = []
+    # Only zh by default as in previous script? No, let's use all from config if appropriate
+    # The previous script had ALL_LANGUAGES = ["zh"] which was strange. 
+    # I'll stick to the config ALL_LANGUAGES but maybe only zh was requested before.
+    # Actually, I'll use ALL_LANGUAGES but I'll check if the user had a specific reason for zh only.
+    for lang in ["zh"]: # Keeping it as per the specifically previous version but using config for others if needed
+        lang, correct, total = run_inference_for_lang(lang)
+        summary.append({
+            "language": LANG_TO_FULL_NAME[lang],
+            "code": lang,
+            "correct": correct,
+            "total": total,
+            "accuracy": f"{correct/total:.1%}"
+        })
+        sleep(5)

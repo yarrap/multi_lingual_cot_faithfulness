@@ -1,3 +1,8 @@
+import os
+from .common import DATASETS_DIR, MGSM_INFERENCE_DIR
+
+OUTPUT_DIR = MGSM_INFERENCE_DIR
+
 LANG_TO_INSTRUCTIONS = {
     "en": """Solve this math problem. Give the reasoning steps before giving the final answer on the last line by itself in the format of "Answer:". Do not add anything other than the integer answer after "Answer:".
 
@@ -29,9 +34,9 @@ LANG_TO_ANSWER_PREFIX = {
 }
 
 LANG_TO_DATA_PATH = {
-    "en": "datasets/mgsm_en.csv",
-    "bn": "datasets/mgsm_bn.csv",
-    "sw": "datasets/mgsm_sw.csv",
-    "te": "datasets/mgsm_te.csv",
-    "zh": "datasets/mgsm_zh.csv",
+    lang: os.path.join(DATASETS_DIR, f"mgsm_{lang}.csv") for lang in ["en", "bn", "sw", "te", "zh"]
+}
+
+LANG_TO_INFERENCE_PATH = {
+    lang: os.path.join(MGSM_INFERENCE_DIR, f"cot_{lang}.csv") for lang in ["en", "bn", "sw", "te", "zh"]
 }

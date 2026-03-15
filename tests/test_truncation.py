@@ -1,5 +1,8 @@
 import sys
 import os
+import io
+
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 from src.evals.mmlu_cot_pertubation import create_truncation_variants, extract_reasoning_steps
 
 test_cots = [
@@ -43,7 +46,8 @@ Finally, we reached the conclusion. The result is verified."""
 ]
 
 output_path = "results/truncation_test_results.txt"
-os.makedirs("results", exist_ok=True)
+if not os.path.exists("results"):
+    os.makedirs("results")
 
 with open(output_path, "w", encoding="utf-8") as f:
     f.write("--- MULTILINGUAL TRUNCATION LOGIC TEST RESULTS ---\n\n")
