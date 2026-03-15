@@ -1,90 +1,16 @@
+import sys
 import os
 import re
 import cohere
 import pandas as pd
-from dotenv import load_dotenv
 from time import sleep
 
-load_dotenv()
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+from configs import API_KEY, MODEL_NAME, ALL_LANGUAGES, LANG_TO_FULL_NAME, mmlu
 
-api_key = os.getenv("COHERE_API_KEY")
-if not api_key:
-    raise ValueError("COHERE_API_KEY not found in .env file")
+co = cohere.ClientV2(API_KEY)
 
-co = cohere.ClientV2(api_key)
-
-ALL_LANGUAGES = ["en", "bn", "sw", "te", "zh"]
-model_name = "tiny-aya-global"
-# "en", "bn", "sw", "te", "zh"
-
-LANG_TO_PATH = {
-    "en": "./datasets/mmlu_en.csv",
-    "bn": "./datasets/mmlu_bn.csv",
-    "sw": "./datasets/mmlu_sw.csv",
-    "te": "./datasets/mmlu_te.csv",
-    "zh": "./datasets/mmlu_zh.csv",
-}
-
-LANG_TO_INSTRUCTIONS = {
-    "en": """Answer the following multiple choice question. Think step by step before giving your final answer. Give the reasoning steps before giving the final answer on the last line by itself in the format of "Answer: X" where X is one of A, B, C, or D. Do not add anything other than the letter after "Answer:".
-
-Question: {question}
-
-A. {A}
-B. {B}
-C. {C}
-D. {D}""",
-    "bn": """নিচের বহু-নির্বাচনী প্রশ্নের উত্তর দিন। চূড়ান্ত উত্তর দেওয়ার আগে ধাপে ধাপে চিন্তা করুন। চূড়ান্ত উত্তরটি শেষ লাইনে "উত্তর: X" ফরম্যাটে দিন যেখানে X হলো A, B, C, বা D এর একটি।
-
-প্রশ্ন: {question}
-
-A. {A}
-B. {B}
-C. {C}
-D. {D}""",
-    "sw": """Jibu swali lifuatalo la chaguo nyingi. Fikiria hatua kwa hatua kabla ya kutoa jibu lako la mwisho. Toa jibu la mwisho kwenye mstari wa mwisho peke yake katika muundo wa "Jibu: X" ambapo X ni moja ya A, B, C, au D.
-
-Swali: {question}
-
-A. {A}
-B. {B}
-C. {C}
-D. {D}""",
-    "te": """కింది బహుళ ఎంపిక ప్రశ్నకు సమాధానం ఇవ్వండి. మీ చివరి సమాధానం ఇవ్వడానికి ముందు దశల వారీగా ఆలోచించండి. చివరి పంక్తిలో "సమాధానం: X" ఆకృతిలో సమాధానం ఇవ్వండి, ఇక్కడ X అనేది A, B, C, లేదా D లో ఒకటి.
-
-ప్రశ్న: {question}
-
-A. {A}
-B. {B}
-C. {C}
-D. {D}""",
-    "zh": """回答以下多项选择题。在给出最终答案之前，请逐步思考。在最后一行以 "答案: X" 的格式给出最终答案，其中 X 是 A、B、C 或 D 中的一个。
-
-问题: {question}
-
-A. {A}
-B. {B}
-C. {C}
-D. {D}""",
-}
-
-LANG_TO_ANSWER_PREFIX = {
-    "en": "Answer",
-    "bn": "উত্তর",
-    "sw": "Jibu",
-    "te": "సమాధానం",
-    "zh": "答案",
-}
-
-LANG_TO_FULL_NAME = {
-    "en": "English",
-    "bn": "Bengali",
-    "sw": "Swahili",
-    "te": "Telugu",
-    "zh": "Chinese",
-}
-
-OUTPUT_DIR = f"./results/cot_inference/mmlu/{model_name}"
+OUTPUT_DIR = f"./results/cot_inference/mmlu/{MODEL_NAME}"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 
@@ -109,7 +35,7 @@ def parse_answer(cot_text: str, answer_prefix: str) -> str:
     return matches[-1] if matches else ""
 
 
-def call_with_retry(co, prompt, model=model_name, max_retries=5):
+def call_with_retry(co, prompt, model=MODEL_NAME, max_retries=5):
     for attempt in range(max_retries):
         try:
             response = co.chat(
@@ -133,14 +59,14 @@ def call_with_retry(co, prompt, model=model_name, max_retries=5):
 def run_inference_for_lang(lang: str):
     print(f"\n{'='*60}")
     print(f"Running MMLU CoT inference for: {LANG_TO_FULL_NAME[lang]} ({lang.upper()})")
-    print(f"Model: {model_name}")
+    print(f"Model: {MODEL_NAME}")
     print(f"{'='*60}")
 
-    df = pd.read_csv(LANG_TO_PATH[lang])
+    df = pd.read_csv(mmlu.LANG_TO_DATA_PATH[lang])
     print(f"Running on all {len(df)} samples")
 
-    instruction_template = LANG_TO_INSTRUCTIONS[lang]
-    answer_prefix = LANG_TO_ANSWER_PREFIX[lang]
+    instruction_template = mmlu.LANG_TO_INSTRUCTIONS[lang]
+    answer_prefix = mmlu.LANG_TO_ANSWER_PREFIX[lang]
 
     cot_answers, extracted_answers = [], []
 
@@ -201,6 +127,6 @@ for lang in ALL_LANGUAGES:
 
 summary_df = pd.DataFrame(summary)
 print(f"\n{'='*60}")
-print(f"FINAL ACCURACY SUMMARY — MMLU CoT Inference ({model_name})")
+print(f"FINAL ACCURACY SUMMARY — MMLU CoT Inference ({MODEL_NAME})")
 print(f"{'='*60}")
 print(summary_df[["language", "correct", "total", "accuracy"]].to_string(index=False))
