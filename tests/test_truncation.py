@@ -2,7 +2,6 @@ import sys
 import os
 import io
 
-sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 from src.perturbation.mmlu_truncation import create_truncation_variants, extract_reasoning_steps
 
 test_cots = [
