@@ -1,0 +1,155 @@
+--- MULTILINGUAL TRUNCATION LOGIC TEST RESULTS ---
+
+=== Test 1: English Numbered List (EN) ===
+ORIGINAL:
+1. First, we need to calculate the total revenue from selling 100 apples at $2 each. Revenue = 100 * 2 = $200.
+2. Next, we find the total cost of the apples, which were bought for $1 each. Cost = 100 * 1 = $100.
+3. Finally, we subtract the cost from the revenue to get the profit. Profit = $200 - $100 = $100.
+Therefore, the profit is $100.
+
+EXTRACTED STEPS (3):
+  Step 1: 1. First, we need to calculate the total revenue from selling 100 apples at $2 each. Revenue = 100 * 2 = $200.
+  Step 2: 2. Next, we find the total cost of the apples, which were bought for $1 each. Cost = 100 * 1 = $100.
+  Step 3: 3. Finally, we subtract the cost from the revenue to get the profit. Profit = $200 - $100 = $100.
+Therefore, the profit is $100.
+
+TRUNCATION VARIANTS:
+--- REMOVE FIRST ---
+2. Next, we find the total cost of the apples, which were bought for $1 each. Cost = 100 * 1 = $100.
+3. Finally, we subtract the cost from the revenue to get the profit. Profit = $200 - $100 = $100.
+Therefore, the profit is $100.
+
+--- REMOVE MIDDLE ---
+1. First, we need to calculate the total revenue from selling 100 apples at $2 each. Revenue = 100 * 2 = $200.
+3. Finally, we subtract the cost from the revenue to get the profit. Profit = $200 - $100 = $100.
+Therefore, the profit is $100.
+
+--- REMOVE LAST ---
+1. First, we need to calculate the total revenue from selling 100 apples at $2 each. Revenue = 100 * 2 = $200.
+2. Next, we find the total cost of the apples, which were bought for $1 each. Cost = 100 * 1 = $100.
+
+============================================================
+
+=== Test 2: Chinese Punctuation (ZH) ===
+ORIGINAL:
+首先，我们需要计算100个苹果每个2美元的总收入。收入 = 100 * 2 = 200美元。其次，我们找到这些苹果的总成本，购买时每个1美元。成本 = 100 * 1 = 100美元。最后，我们从收入中减去成本得出利润。利润 = 200 - 100 = 100美元。因此，利润是100美元。
+
+EXTRACTED STEPS (7):
+  Step 1: 首先，我们需要计算100个苹果每个2美元的总收入。
+  Step 2: 收入 = 100 * 2 = 200美元。
+  Step 3: 其次，我们找到这些苹果的总成本，购买时每个1美元。
+  Step 4: 成本 = 100 * 1 = 100美元。
+  Step 5: 最后，我们从收入中减去成本得出利润。
+  Step 6: 利润 = 200 - 100 = 100美元。
+  Step 7: 因此，利润是100美元。
+
+TRUNCATION VARIANTS:
+--- REMOVE FIRST ---
+成本 = 100 * 1 = 100美元。 最后，我们从收入中减去成本得出利润。 利润 = 200 - 100 = 100美元。 因此，利润是100美元。
+
+--- REMOVE MIDDLE ---
+首先，我们需要计算100个苹果每个2美元的总收入。 收入 = 100 * 2 = 200美元。 其次，我们找到这些苹果的总成本，购买时每个1美元。 利润 = 200 - 100 = 100美元。 因此，利润是100美元。
+
+--- REMOVE LAST ---
+首先，我们需要计算100个苹果每个2美元的总收入。 收入 = 100 * 2 = 200美元。 其次，我们找到这些苹果的总成本，购买时每个1美元。 成本 = 100 * 1 = 100美元。 最后，我们从收入中减去成本得出利润。
+
+============================================================
+
+=== Test 3: Bengali Punctuation (BN) ===
+ORIGINAL:
+১. ধরি রহিমের কাছে ১০০ টাকা আছে। সে বাজার থেকে ২০ টাকার আম কিনল। এখন তার কাছে ৮০ টাকা আছে। এরপর সে ১০ টাকার কলা কিনল। অবশেষে তার কাছে ৭০ টাকা রইল।
+
+EXTRACTED STEPS (6):
+  Step 1: ১.
+  Step 2: ধরি রহিমের কাছে ১০০ টাকা আছে।
+  Step 3: সে বাজার থেকে ২০ টাকার আম কিনল।
+  Step 4: এখন তার কাছে ৮০ টাকা আছে।
+  Step 5: এরপর সে ১০ টাকার কলা কিনল।
+  Step 6: অবশেষে তার কাছে ৭০ টাকা রইল।
+
+TRUNCATION VARIANTS:
+--- REMOVE FIRST ---
+সে বাজার থেকে ২০ টাকার আম কিনল। এখন তার কাছে ৮০ টাকা আছে। এরপর সে ১০ টাকার কলা কিনল। অবশেষে তার কাছে ৭০ টাকা রইল।
+
+--- REMOVE MIDDLE ---
+১. ধরি রহিমের কাছে ১০০ টাকা আছে। এরপর সে ১০ টাকার কলা কিনল। অবশেষে তার কাছে ৭০ টাকা রইল।
+
+--- REMOVE LAST ---
+১. ধরি রহিমের কাছে ১০০ টাকা আছে। সে বাজার থেকে ২০ টাকার আম কিনল। এখন তার কাছে ৮০ টাকা আছে।
+
+============================================================
+
+=== Test 4: Telugu Numbered List (TE) ===
+ORIGINAL:
+1. మొదట, ఒక వస్తువు ధర 100 రూపాయలు అనుకుందాం. 2. దానికి 10 శాతం లాభం కలిపితే అది 110 రూపాయలు అవుతుంది. 3. కాబట్టి అమ్మకపు ధర 110 రూపాయలు.
+
+EXTRACTED STEPS (6):
+  Step 1: 1.
+  Step 2: మొదట, ఒక వస్తువు ధర 100 రూపాయలు అనుకుందాం.
+  Step 3: 2.
+  Step 4: దానికి 10 శాతం లాభం కలిపితే అది 110 రూపాయలు అవుతుంది.
+  Step 5: 3.
+  Step 6: కాబట్టి అమ్మకపు ధర 110 రూపాయలు.
+
+TRUNCATION VARIANTS:
+--- REMOVE FIRST ---
+2. దానికి 10 శాతం లాభం కలిపితే అది 110 రూపాయలు అవుతుంది. 3. కాబట్టి అమ్మకపు ధర 110 రూపాయలు.
+
+--- REMOVE MIDDLE ---
+1. మొదట, ఒక వస్తువు ధర 100 రూపాయలు అనుకుందాం. 3. కాబట్టి అమ్మకపు ధర 110 రూపాయలు.
+
+--- REMOVE LAST ---
+1. మొదట, ఒక వస్తువు ధర 100 రూపాయలు అనుకుందాం. 2. దానికి 10 శాతం లాభం కలిపితే అది 110 రూపాయలు అవుతుంది.
+
+============================================================
+
+=== Test 5: Swahili Sentences (SW) ===
+ORIGINAL:
+Kwanza, tunahesabu jumla. Pili, tunatoa gharama. Tatu, tunapata matokeo ya mwisho. Hii ndiyo njia rahisi zaidi.
+
+EXTRACTED STEPS (4):
+  Step 1: Kwanza, tunahesabu jumla.
+  Step 2: Pili, tunatoa gharama.
+  Step 3: Tatu, tunapata matokeo ya mwisho.
+  Step 4: Hii ndiyo njia rahisi zaidi.
+
+TRUNCATION VARIANTS:
+--- REMOVE FIRST ---
+Tatu, tunapata matokeo ya mwisho. Hii ndiyo njia rahisi zaidi.
+
+--- REMOVE MIDDLE ---
+Kwanza, tunahesabu jumla. Pili, tunatoa gharama. Hii ndiyo njia rahisi zaidi.
+
+--- REMOVE LAST ---
+Kwanza, tunahesabu jumla. Pili, tunatoa gharama. Tatu, tunapata matokeo ya mwisho.
+
+============================================================
+
+=== Test 6: Double Newline Blocks (EN) ===
+ORIGINAL:
+This is the first segment of reasoning. It explains the base concept.
+
+Now we move to the second part. This involves the actual calculation phase.
+
+Finally, we reached the conclusion. The result is verified.
+
+EXTRACTED STEPS (3):
+  Step 1: This is the first segment of reasoning. It explains the base concept.
+  Step 2: Now we move to the second part. This involves the actual calculation phase.
+  Step 3: Finally, we reached the conclusion. The result is verified.
+
+TRUNCATION VARIANTS:
+--- REMOVE FIRST ---
+Now we move to the second part. This involves the actual calculation phase.
+Finally, we reached the conclusion. The result is verified.
+
+--- REMOVE MIDDLE ---
+This is the first segment of reasoning. It explains the base concept.
+Finally, we reached the conclusion. The result is verified.
+
+--- REMOVE LAST ---
+This is the first segment of reasoning. It explains the base concept.
+Now we move to the second part. This involves the actual calculation phase.
+
+============================================================
+
