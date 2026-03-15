@@ -1,23 +1,3 @@
-"""
-MGSM: Multilingual Grade School Math Benchmark (MGSM) is a benchmark of grade-school math problems. 
-Language Models are Multilingual Chain-of-Thought Reasoners
-Freda Shi, Mirac Suzgun, Markus Freitag, Xuezhi Wang, Suraj Srivats, Soroush Vosoughi, Hyung Won Chung, Yi Tay, Sebastian Ruder, Denny Zhou, Dipanjan Das, Jason Wei
-https://arxiv.org/abs/2210.03057
-"""
-
-import re
-import csv
-
-ALL_LANGUAGES = ["en", "bn","sw", "te", "zh"]
-
-LANG_TO_PATH = {
-    "en": "datasets/mgsm_en.csv",
-    "bn": "datasets/mgsm_bn.csv",
-    "sw": "datasets/mgsm_sw.csv",
-    "te": "datasets/mgsm_te.csv",
-    "zh": "datasets/mgsm_zh.csv",
-}
-
 LANG_TO_INSTRUCTIONS = {
     "en": """Solve this math problem. Give the reasoning steps before giving the final answer on the last line by itself in the format of "Answer:". Do not add anything other than the integer answer after "Answer:".
 
@@ -48,38 +28,10 @@ LANG_TO_ANSWER_PREFIX = {
     "yo": "Idahun"
 }
 
-
-def parse_answer(answer: str, answer_prefix: str) -> str:
-    if answer_prefix not in answer:
-        return ""
-
-    answer_text = answer.split(answer_prefix)[-1].strip()
-
-    # find all the numbers (including decimals) in the string
-    numbers = re.findall(r"\d+\.?\d*", answer_text.replace(",", ""))
-
-    # return the first number (removing trailing decimal point if present),
-    # or an empty string if there were no numbers
-    return numbers[-1].rstrip(".") if numbers else ""
-
-
-def get_lang_samples(lang: str) -> list[dict[str, str, str]]:
-    path = LANG_TO_PATH[lang]
-    samples = []
-    with open(path, "r", encoding="utf-8") as f:
-        reader = csv.DictReader(f)
-        for sample in reader:
-            samples.append({"inputs": sample['question'], "targets": sample['answer'], "lang": lang})
-    return samples
-
-
-def get_all_samples() -> list[dict[str, str, str]]:
-    examples = []
-    for lang in ALL_LANGUAGES:
-        examples += get_lang_samples(lang)
-    return examples
-
-
-class MGSMEval():
-    # TODO
-    pass
+LANG_TO_DATA_PATH = {
+    "en": "datasets/mgsm_en.csv",
+    "bn": "datasets/mgsm_bn.csv",
+    "sw": "datasets/mgsm_sw.csv",
+    "te": "datasets/mgsm_te.csv",
+    "zh": "datasets/mgsm_zh.csv",
+}
