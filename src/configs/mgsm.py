@@ -25,18 +25,18 @@ LANG_TO_INSTRUCTIONS = {
 }
 
 LANG_TO_ANSWER_PREFIX = {
-    "en": "Answer",
-    "bn": "উত্তর",
-    "sw": "Jibu",
-    "te": "సమాధానం",
-    "zh": "答案",
-    "yo": "Idahun"
+    "en": "Answer:",
+    "bn": "উত্তর:",
+    "sw": "Jibu:",
+    "te": "సమాధానం:",
+    "zh": "答案:",
+    "yo": "Idahun:"
 }
 
 LANG_TO_DATA_PATH = {
-    lang: os.path.join(DATASETS_DIR, f"mgsm_{lang}.csv") for lang in ["en", "bn", "sw", "te", "zh"]
+    lang: os.path.join(DATASETS_DIR, f"mgsm_{lang}.csv") for lang in ["en","bn", "sw", "te", "zh"]
 }
 
 LANG_TO_INFERENCE_PATH = {
-    lang: os.path.join(MGSM_INFERENCE_DIR, f"cot_{lang}.csv") for lang in ["en", "bn", "sw", "te", "zh"]
+    lang: os.path.join(MGSM_INFERENCE_DIR, f"cot_{lang}.csv") for lang in ["en","bn", "sw", "te", "zh"]
 }
