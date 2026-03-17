@@ -13,10 +13,10 @@ if not api_key:
 
 co = cohere.ClientV2(api_key)
 
-ALL_LANGUAGES = ["bn"]
+ALL_LANGUAGES = ["en"]
 # , "sw", "te", "zh","en", "bn",
 
-model_name = "tiny-aya-fire"
+model_name = "tiny-aya-global"
 
 LANG_TO_PATH = {
     "en": "../../datasets/mgsm_en.csv",
