@@ -7,6 +7,8 @@ ENV/
 env.bak/
 venv.bak/
 main/
+src/inference/mgsm_cot_inference1.py
+results/cot_inference/mgsm/tiny-aya-global/old/
 
 # Python
 __pycache__/
