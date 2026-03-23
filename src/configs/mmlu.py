@@ -50,6 +50,7 @@ C. {C}
 D. {D}""",
 }
 
+
 LANG_TO_ANSWER_PREFIX = {
     "en": "the answer is",
     "bn": "উত্তর হল",
@@ -57,6 +58,110 @@ LANG_TO_ANSWER_PREFIX = {
     "te": "సమాధానం",
     "zh": "答案是",
 }
+
+
+LANG_TO_DIRECT_INSTRUCTIONS = {
+    "en": """IMPORTANT: Output must be EXACTLY one letter: A, B, C, or D.
+
+Do NOT write any explanation.
+Do NOT write any words.
+Do NOT solve the problem.
+
+Return ONLY one letter.
+
+Question: {question}
+
+A. {A}
+B. {B}
+C. {C}
+D. {D}
+
+Answer (one letter only):""",
+
+    "bn": """নির্দেশনা অত্যন্ত গুরুত্বপূর্ণ:
+
+শুধুমাত্র একটি অক্ষর লিখুন: A, B, C, বা D
+
+ কোনো ব্যাখ্যা লিখবেন না  
+ কোনো গণনা দেখাবেন না  
+ কোনো বাক্য লিখবেন না  
+
+শুধু একটি অক্ষর লিখুন (যেমন: B)
+
+প্রশ্ন: {question}
+
+A. {A}
+B. {B}
+C. {C}
+D. {D}
+
+উত্তর (শুধু একটি অক্ষর):""",
+
+    "sw": """MAELEKEZO MUHIMU:
+
+Andika herufi moja tu: A, B, C, au D
+
+USIANDIKE maelezo yoyote  
+USIANDIKE sentensi yoyote  
+
+Toa herufi moja tu.
+
+Swali: {question}
+
+A. {A}
+B. {B}
+C. {C}
+D. {D}
+
+Jibu (herufi moja tu):""",
+
+    "te": """ముఖ్యమైన సూచనలు:
+
+కేవలం ఒక అక్షరం మాత్రమే ఇవ్వండి: A, B, C, లేదా D
+
+ ఎటువంటి వివరణ ఇవ్వకండి  
+ ఎటువంటి వాక్యాలు రాయకండి  
+
+ఒకే అక్షరం మాత్రమే ఇవ్వండి (ఉదా: B)
+
+ప్రశ్న: {question}
+
+A. {A}
+B. {B}
+C. {C}
+D. {D}
+
+సమాధానం (ఒక అక్షరం మాత్రమే):""",
+
+    "zh": """重要说明：
+
+只能输出一个字母：A、B、C 或 D
+
+不要写任何解释  
+不要写任何句子  
+
+只输出一个字母
+
+问题: {question}
+
+A. {A}
+B. {B}
+C. {C}
+D. {D}
+
+答案（仅一个字母）：""",
+}
+
+
+# Answer prefixes to look for (same as before, but simpler)
+LANG_TO_DIRECT_ANSWER_PREFIX = {
+    "en": "answer",
+    "bn": "উত্তর",
+    "sw": "jibu",
+    "te": "సమాధానం",
+    "zh": "答案",
+}
+
 
 LANG_TO_QUESTION_TEMPLATE = {
     "en": "Question: {question}\n\nA. {A}\nB. {B}\nC. {C}\nD. {D}",
