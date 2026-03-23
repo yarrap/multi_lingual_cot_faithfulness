@@ -23,7 +23,7 @@ MGSM_INFERENCE_DIR = os.path.join(RESULTS_DIR, "cot_inference", "mgsm", MODEL_NA
 # Perturbation Results Directories
 MMLU_PERTURBATION_DIR = os.path.join(RESULTS_DIR, "truncation_perturbation", "mmlu", MODEL_NAME)
 
-ALL_LANGUAGES = ["zh"]
+ALL_LANGUAGES = ["en", "bn", "sw", "te", "zh"]
 # , "bn", "sw", "te", "zh", "en"
 
 LANG_TO_FULL_NAME = {
