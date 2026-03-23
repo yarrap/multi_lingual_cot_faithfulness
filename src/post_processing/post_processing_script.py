@@ -122,7 +122,11 @@ def process_folder(input_folder: str, output_file: str):
 	if not p.exists():
 		raise FileNotFoundError(f"Input folder not found: {input_folder}")
 
-	files = sorted([f for f in p.iterdir() if f.suffix in ('.xlsx', '.xls') and not f.name.startswith('~$')])
+	# Only process the per-language majority files (cot_majority_{lang}.xlsx)
+	files = sorted([
+		f for f in p.iterdir()
+		if f.suffix in ('.xlsx', '.xls') and not f.name.startswith('~$') and f.name.startswith('cot_majority_')
+	])
 	if not files:
 		raise FileNotFoundError(f"No Excel files found in {input_folder}")
 
@@ -146,12 +150,14 @@ def process_folder(input_folder: str, output_file: str):
 
 
 def main():
-	model_name = 'tiny-aya-global'
+	model_name = 'tiny-aya-water'
+	dataset_name = 'mmlu'
+	inference_type = 'cot_inference'
 	ap = argparse.ArgumentParser()
 	# Resolve defaults relative to the repository root (three parents above `src`)
-	repo_root = Path(__file__).resolve().parents[3]
-	default_input = str(repo_root / 'results' / 'cot_inference' / 'mgsm' / model_name)
-	default_output = str(repo_root / 'results' / 'cot_inference' / 'mgsm' / 'final' / f'final_data_{model_name}.xlsx')
+	repo_root = Path(__file__).resolve().parents[2]
+	default_input = str(repo_root / 'results' / inference_type / dataset_name / model_name)
+	default_output = str(repo_root / 'results' / inference_type / dataset_name / 'final' / f'final_data_{model_name}.xlsx')
 	ap.add_argument('--input_folder', type=str, default=default_input)
 	ap.add_argument('--output_file', type=str, default=default_output)
 	args = ap.parse_args()
