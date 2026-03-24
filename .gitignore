@@ -13,6 +13,8 @@ results/cot_inference/mgsm/tiny-aya-global/old/
 results/direct_inference/mgsm/old/
 src/evals/cot-tiny-aya-water-last2.ipynb
 cot_faithfulness_truncate_all.ipynb
+results/tests/new
+
 
 # Python
 __pycache__/
