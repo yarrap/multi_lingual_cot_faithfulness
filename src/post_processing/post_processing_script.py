@@ -122,13 +122,13 @@ def process_folder(input_folder: str, output_file: str):
 	if not p.exists():
 		raise FileNotFoundError(f"Input folder not found: {input_folder}")
 
-	# Only process the per-language majority files (cot_majority_{lang}.xlsx)
+	# Process per-language majority files (cot_majority_{lang}.*) supporting Excel and CSV
 	files = sorted([
 		f for f in p.iterdir()
-		if f.suffix in ('.xlsx', '.xls') and not f.name.startswith('~$') and f.name.startswith('cot_majority_')
+		if f.suffix.lower() in ('.xlsx', '.xls', '.csv') and not f.name.startswith('~$') and f.name.startswith('cot_majority_')
 	])
 	if not files:
-		raise FileNotFoundError(f"No Excel files found in {input_folder}")
+		raise FileNotFoundError(f"No cot_majority_*.xlsx/.xls/.csv files found in {input_folder}")
 
 	out_parent = Path(output_file).parent
 	out_parent.mkdir(parents=True, exist_ok=True)
@@ -136,10 +136,17 @@ def process_folder(input_folder: str, output_file: str):
 
 	for f in files:
 		try:
-			df = pd.read_excel(f, sheet_name=0)
-		except Exception:
-			xls = pd.read_excel(f, sheet_name=None)
-			df = list(xls.values())[0]
+			if f.suffix.lower() == '.csv':
+				df = pd.read_csv(f)
+			else:
+				try:
+					df = pd.read_excel(f, sheet_name=0)
+				except Exception:
+					xls = pd.read_excel(f, sheet_name=None)
+					df = list(xls.values())[0]
+		except Exception as e:
+			print(f"Warning: failed to read {f}: {e}")
+			continue
 
 		processed = process_dataframe_using_votes(df)
 		sheet_name = f.stem[:31]
@@ -150,8 +157,8 @@ def process_folder(input_folder: str, output_file: str):
 
 
 def main():
-	model_name = 'tiny-aya-water'
-	dataset_name = 'mmlu'
+	model_name = 'gemma3'
+	dataset_name = 'mgsm'
 	inference_type = 'cot_inference'
 	ap = argparse.ArgumentParser()
 	# Resolve defaults relative to the repository root (three parents above `src`)
