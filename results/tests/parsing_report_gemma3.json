@@ -1,0 +1,137 @@
+{
+  "cot_bn.csv": {
+    "path": "results/cot_inference/mgsm/gemma3/cot_bn.csv",
+    "total_rows": 250,
+    "extracted_columns": {
+      "extracted_run1": {
+        "missing_count": 0,
+        "missing_frac": 0.0,
+        "examples": []
+      },
+      "extracted_run2": {
+        "missing_count": 0,
+        "missing_frac": 0.0,
+        "examples": []
+      },
+      "extracted_run3": {
+        "missing_count": 0,
+        "missing_frac": 0.0,
+        "examples": []
+      }
+    },
+    "examples": [],
+    "missing_rows": {
+      "extracted_run1": [],
+      "extracted_run2": [],
+      "extracted_run3": []
+    }
+  },
+  "cot_en.csv": {
+    "path": "results/cot_inference/mgsm/gemma3/cot_en.csv",
+    "total_rows": 250,
+    "extracted_columns": {
+      "extracted_run1": {
+        "missing_count": 0,
+        "missing_frac": 0.0,
+        "examples": []
+      },
+      "extracted_run2": {
+        "missing_count": 0,
+        "missing_frac": 0.0,
+        "examples": []
+      },
+      "extracted_run3": {
+        "missing_count": 0,
+        "missing_frac": 0.0,
+        "examples": []
+      }
+    },
+    "examples": [],
+    "missing_rows": {
+      "extracted_run1": [],
+      "extracted_run2": [],
+      "extracted_run3": []
+    }
+  },
+  "cot_sw.csv": {
+    "path": "results/cot_inference/mgsm/gemma3/cot_sw.csv",
+    "total_rows": 250,
+    "extracted_columns": {
+      "extracted_run1": {
+        "missing_count": 0,
+        "missing_frac": 0.0,
+        "examples": []
+      },
+      "extracted_run2": {
+        "missing_count": 0,
+        "missing_frac": 0.0,
+        "examples": []
+      },
+      "extracted_run3": {
+        "missing_count": 0,
+        "missing_frac": 0.0,
+        "examples": []
+      }
+    },
+    "examples": [],
+    "missing_rows": {
+      "extracted_run1": [],
+      "extracted_run2": [],
+      "extracted_run3": []
+    }
+  },
+  "cot_te.csv": {
+    "path": "results/cot_inference/mgsm/gemma3/cot_te.csv",
+    "total_rows": 250,
+    "extracted_columns": {
+      "extracted_run1": {
+        "missing_count": 0,
+        "missing_frac": 0.0,
+        "examples": []
+      },
+      "extracted_run2": {
+        "missing_count": 0,
+        "missing_frac": 0.0,
+        "examples": []
+      },
+      "extracted_run3": {
+        "missing_count": 0,
+        "missing_frac": 0.0,
+        "examples": []
+      }
+    },
+    "examples": [],
+    "missing_rows": {
+      "extracted_run1": [],
+      "extracted_run2": [],
+      "extracted_run3": []
+    }
+  },
+  "cot_zh.csv": {
+    "path": "results/cot_inference/mgsm/gemma3/cot_zh.csv",
+    "total_rows": 250,
+    "extracted_columns": {
+      "extracted_run1": {
+        "missing_count": 0,
+        "missing_frac": 0.0,
+        "examples": []
+      },
+      "extracted_run2": {
+        "missing_count": 0,
+        "missing_frac": 0.0,
+        "examples": []
+      },
+      "extracted_run3": {
+        "missing_count": 0,
+        "missing_frac": 0.0,
+        "examples": []
+      }
+    },
+    "examples": [],
+    "missing_rows": {
+      "extracted_run1": [],
+      "extracted_run2": [],
+      "extracted_run3": []
+    }
+  }
+}

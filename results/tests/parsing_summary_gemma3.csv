@@ -1,0 +1,16 @@
+file,extracted_column,total_rows,missing_count,missing_frac,heuristic_recovered,heuristic_recover_frac
+cot_bn.csv,extracted_run1,250,0,0.000000,0,0.000000
+cot_bn.csv,extracted_run2,250,0,0.000000,0,0.000000
+cot_bn.csv,extracted_run3,250,0,0.000000,0,0.000000
+cot_en.csv,extracted_run1,250,0,0.000000,0,0.000000
+cot_en.csv,extracted_run2,250,0,0.000000,0,0.000000
+cot_en.csv,extracted_run3,250,0,0.000000,0,0.000000
+cot_sw.csv,extracted_run1,250,0,0.000000,0,0.000000
+cot_sw.csv,extracted_run2,250,0,0.000000,0,0.000000
+cot_sw.csv,extracted_run3,250,0,0.000000,0,0.000000
+cot_te.csv,extracted_run1,250,0,0.000000,0,0.000000
+cot_te.csv,extracted_run2,250,0,0.000000,0,0.000000
+cot_te.csv,extracted_run3,250,0,0.000000,0,0.000000
+cot_zh.csv,extracted_run1,250,0,0.000000,0,0.000000
+cot_zh.csv,extracted_run2,250,0,0.000000,0,0.000000
+cot_zh.csv,extracted_run3,250,0,0.000000,0,0.000000
