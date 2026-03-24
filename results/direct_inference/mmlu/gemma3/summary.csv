@@ -1,0 +1,6 @@
+language,code,correct,total,accuracy,parse_failures,output_file
+English,en,420,1064,39.5%,0,/content/gemma_mmlu_direct_outputs/direct_en.csv
+Bengali,bn,364,1064,34.2%,0,/content/gemma_mmlu_direct_outputs/direct_bn.csv
+Swahili,sw,389,1064,36.6%,0,/content/gemma_mmlu_direct_outputs/direct_sw.csv
+Telugu,te,372,1064,35.0%,0,/content/gemma_mmlu_direct_outputs/direct_te.csv
+Chinese,zh,428,1064,40.2%,0,/content/gemma_mmlu_direct_outputs/direct_zh.csv
