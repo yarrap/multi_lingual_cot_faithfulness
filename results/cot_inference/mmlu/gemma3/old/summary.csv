@@ -1,0 +1,6 @@
+language,correct,total,accuracy,parse_failures,output_file
+en,685,1064,64.4%,63,gemma_mmlu_outputs/cot_en.csv
+bn,508,1064,47.7%,311,gemma_mmlu_outputs/cot_bn.csv
+sw,459,1064,43.1%,755,gemma_mmlu_outputs/cot_sw.csv
+te,510,1064,47.9%,544,gemma_mmlu_outputs/cot_te.csv
+zh,615,1064,57.8%,345,gemma_mmlu_outputs/cot_zh.csv

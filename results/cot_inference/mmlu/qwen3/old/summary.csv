@@ -1,0 +1,6 @@
+language,correct,total,accuracy,parse_failures,output_file
+en,514,1064,48.3%,49,qwen3_mmlu_outputs/cot_en.csv
+bn,454,1064,42.7%,37,qwen3_mmlu_outputs/cot_bn.csv
+sw,380,1064,35.7%,45,qwen3_mmlu_outputs/cot_sw.csv
+te,500,1064,47.0%,32,qwen3_mmlu_outputs/cot_te.csv
+zh,311,1064,29.2%,1833,qwen3_mmlu_outputs/cot_zh.csv
