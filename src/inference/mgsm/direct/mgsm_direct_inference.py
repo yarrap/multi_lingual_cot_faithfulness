@@ -17,47 +17,82 @@ if not api_key:
 
 co = cohere.ClientV2(api_key)
 
-ALL_LANGUAGES = ["zh"]
-# , "sw", "te", "zh","en", "bn",
+ALL_LANGUAGES = ["sw", "te", "zh","en", "bn"]
 
-model_name = "tiny-aya-water"
+model_name = "tiny-aya-global"
 
 LANG_TO_PATH = {
-    "en": "../../datasets/mgsm_en.csv",
-    "bn": "../../datasets/mgsm_bn.csv",
-    "sw": "../../datasets/mgsm_sw.csv",
-    "te": "../../datasets/mgsm_te.csv",
-    "zh": "../../datasets/mgsm_zh.csv",
+    "en": "../../../../datasets/mgsm_en.csv",
+    "bn": "../../../../datasets/mgsm_bn.csv",
+    "sw": "../../../../datasets/mgsm_sw.csv",
+    "te": "../../../../datasets/mgsm_te.csv",
+    "zh": "../../../../datasets/mgsm_zh.csv",
 }
 
+# ── CHANGE 1: Instruction retained + 2 format examples added ──────────────────
+# The original instruction line is kept exactly as it was.
+# Two simple examples are added below it so the model sees the exact
+# format expected: question → bare number via the answer prefix.
+# Examples are trivial on purpose — the model should focus on FORMAT not math.
+# ──────────────────────────────────────────────────────────────────────────────
 LANG_TO_INSTRUCTIONS = {
     "en": """Answer the following math question with a single number only. No explanation.
+
+Question: Tom has 5 apples. He eats 2. How many are left?
+Answer: 3
+
+Question: A shop has 10 items. 4 are sold. How many remain?
+Answer: 6
 
 Question: {input}
 Answer:""",
 
     "bn": """নিচের গণিত প্রশ্নের উত্তর শুধুমাত্র একটি সংখ্যায় দিন। কোনো ব্যাখ্যা নয়।
 
+প্রশ্ন: টমের কাছে ৫টি আপেল আছে। সে ২টি খায়। কতটি বাকি আছে?
+উত্তর: 3
+
+প্রশ্ন: একটি দোকানে ১০টি জিনিস আছে। ৪টি বিক্রি হয়। কতটি বাকি?
+উত্তর: 6
+
 প্রশ্ন: {input}
 উত্তর:""",
 
     "sw": """Jibu swali hili la hesabu kwa nambari moja tu. Bila maelezo.
+
+Swali: Tomi ana maapulo 5. Anakula 2. Amebaki na maapulo mangapi?
+Jibu: 3
+
+Swali: Duka lina vitu 10. Vitu 4 vinauzwa. Vimebaki vingapi?
+Jibu: 6
 
 Swali: {input}
 Jibu:""",
 
     "te": """క్రింది గణిత ప్రశ్నకు కేవలం ఒక్క సంఖ్యలో సమాధానం ఇవ్వండి. వివరణ అవసరం లేదు.
 
+ప్రశ్న: టామ్ దగ్గర 5 ఆపిల్‌లు ఉన్నాయి. అతను 2 తింటాడు. ఎన్ని మిగిలాయి?
+సమాధానం: 3
+
+ప్రశ్న: ఒక దుకాణంలో 10 వస్తువులు ఉన్నాయి. 4 అమ్ముడయ్యాయి. ఎన్ని మిగిలాయి?
+సమాధానం: 6
+
 ప్రశ్న: {input}
 సమాధానం:""",
 
     "zh": """请用一个数字回答以下数学题。不需要解释。
 
+问题：汤姆有5个苹果。他吃了2个。还剩几个？
+答案：3
+
+问题：一家商店有10件商品。卖出了4件。还剩几件？
+答案：6
+
 问题：{input}
 答案：""",
 }
 
-# Answer prefixes for the 3-stage parser
+# Answer prefixes for the 3-stage parser — unchanged
 LANG_TO_ANSWER_PREFIX = {
     "en": ["Answer:"],
     "bn": ["উত্তর:"],
@@ -74,8 +109,7 @@ LANG_TO_FULL_NAME = {
     "zh": "Chinese",
 }
 
-# ── Folder structure unchanged from original direct inference script ──
-OUTPUT_DIR = f"../../results/direct_inference/mgsm/{model_name}"
+OUTPUT_DIR = f"../../../../results/direct_inference/mgsm/{model_name}"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 N_RUNS = 3
@@ -90,19 +124,47 @@ def safe_print(*args, **kwargs):
         print(*args, **kwargs)
 
 
+# ── CHANGE 2: Native numeral normalization ─────────────────────────────────────
+# Covers Bengali (০-৯), Telugu (౦-౯), and Chinese written-form (〇-九).
+# Swahili and English use ASCII digits already — no entry needed for them.
+# Devanagari intentionally excluded as it is not a target language.
+# Built into a translation table once at load time for efficiency.
+# ──────────────────────────────────────────────────────────────────────────────
+NATIVE_NUMERAL_MAP = {
+    # Bengali digits
+    "০": "0", "১": "1", "২": "2", "৩": "3", "৪": "4",
+    "৫": "5", "৬": "6", "৭": "7", "৮": "8", "৯": "9",
+    # Telugu digits
+    "౦": "0", "౧": "1", "౨": "2", "౩": "3", "౪": "4",
+    "౫": "5", "౬": "6", "౭": "7", "౮": "8", "౯": "9",
+    # Chinese written-form numerals (edge case — model rarely uses these)
+    "〇": "0", "一": "1", "二": "2", "三": "3", "四": "4",
+    "五": "5", "六": "6", "七": "7", "八": "8", "九": "9",
+}
+
+_NUMERAL_TABLE = str.maketrans(NATIVE_NUMERAL_MAP)
+
+
+def normalize_numerals(text: str) -> str:
+    """Convert native-script digits to ASCII before parsing."""
+    return text.translate(_NUMERAL_TABLE)
+
+
 def parse_answer(response_text: str, lang: str) -> tuple[str, str]:
     """
-    3-stage parser (same logic as original direct inference):
-      1. Entire response is a bare number — ideal case
+    3-stage parser — identical logic to original, with normalize_numerals()
+    added at the top so all stages operate on ASCII digits only.
+
+      1. Entire response is a bare number
       2. Native answer prefix found e.g. "Answer: 42"
       3. Fallback — grab the last number anywhere in the response
-
-    Returns (extracted_answer, parse_method) to match CoT script's interface.
     """
     if not response_text or response_text.strip() == "":
         return "", "failed"
 
-    text = response_text.replace(",", "").strip()
+    # Normalise native numerals before any regex work
+    normalised = normalize_numerals(response_text)
+    text = normalised.replace(",", "").strip()
 
     # Stage 1: pure number
     if re.fullmatch(r"\d+\.?\d*", text):
@@ -110,8 +172,8 @@ def parse_answer(response_text: str, lang: str) -> tuple[str, str]:
 
     # Stage 2: native prefix found
     for prefix in LANG_TO_ANSWER_PREFIX.get(lang, []):
-        if prefix in response_text:
-            after = response_text.split(prefix)[-1].strip()
+        if prefix in normalised:
+            after = normalised.split(prefix)[-1].strip()
             numbers = re.findall(r"\d+\.?\d*", after.replace(",", ""))
             if numbers:
                 return numbers[0].rstrip("."), "prefix_match"
@@ -153,7 +215,7 @@ def call_with_retry(prompt: str, model=model_name, max_retries=5) -> str:
                 model=model,
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=100,
-                temperature=0.0,
+                temperature=0.3,
             )
             return response.message.content[0].text.strip()
         except Exception as e:
@@ -314,7 +376,7 @@ def run_inference_for_lang(lang: str):
     for status, count in status_counts.items():
         safe_print(f"  {status:12s}: {count} questions")
 
-    # ── Save per-language .xlsx (mirrors CoT output) ───────────────────────────
+    # ── Save per-language .xlsx ────────────────────────────────────────────────
     output_path = os.path.join(OUTPUT_DIR, f"direct_majority_{lang}.xlsx")
     with pd.ExcelWriter(output_path, engine="openpyxl") as writer:
         df.to_excel(writer, sheet_name="results", index=False)
@@ -329,7 +391,7 @@ def run_inference_for_lang(lang: str):
 if __name__ == "__main__":
     summary = []
     all_failed_parses = []
-    lang_results = {}   # lang -> {"df": ..., "failed_df": ...}
+    lang_results = {}
 
     with ThreadPoolExecutor(max_workers=LANG_WORKERS) as executor:
         future_to_lang = {
@@ -339,11 +401,11 @@ if __name__ == "__main__":
         for future in as_completed(future_to_lang):
             lang, correct, total, failed_rows, df, failed_df = future.result()
             summary.append({
-                "language": LANG_TO_FULL_NAME[lang],
-                "code": lang,
-                "correct": correct,
-                "total": total,
-                "accuracy": f"{correct/total:.1%}",
+                "language":       LANG_TO_FULL_NAME[lang],
+                "code":           lang,
+                "correct":        correct,
+                "total":          total,
+                "accuracy":       f"{correct/total:.1%}",
                 "parse_failures": len(failed_rows),
             })
             all_failed_parses.extend(failed_rows)
@@ -358,7 +420,6 @@ if __name__ == "__main__":
     total_failures = sum(r["parse_failures"] for r in summary)
     print(f"\nTotal parse failures across all languages: {total_failures}")
 
-    # ── summary_majority.xlsx ──────────────────────────────────────────────────
     summary_path = os.path.join(OUTPUT_DIR, "summary_majority.xlsx")
     all_failed_df = pd.DataFrame(all_failed_parses) if all_failed_parses else pd.DataFrame()
 
@@ -371,19 +432,15 @@ if __name__ == "__main__":
     if not all_failed_df.empty:
         print(f"⚠️  Parse failure log also saved in 'all_parse_failures' sheet.")
 
-    # ── final_results.xlsx ─────────────────────────────────────────────────────
-    # Sheet layout:
-    #   summary            — accuracy + parse failure count across all languages
-    #   results_{lang}     — full results for each language (one sheet each)
-    #   failures_{lang}    — failed parse cases per language (only if any failures)
-    # ──────────────────────────────────────────────────────────────────────────
     final_path = os.path.join(OUTPUT_DIR, "final_results.xlsx")
     with pd.ExcelWriter(final_path, engine="openpyxl") as writer:
         summary_df.to_excel(writer, sheet_name="summary", index=False)
         for lang in sorted(lang_results.keys()):
-            lang_results[lang]["df"].to_excel(writer, sheet_name=f"results_{lang}"[:31], index=False)
+            lang_results[lang]["df"].to_excel(
+                writer, sheet_name=f"results_{lang}"[:31], index=False)
             if not lang_results[lang]["failed_df"].empty:
-                lang_results[lang]["failed_df"].to_excel(writer, sheet_name=f"failures_{lang}"[:31], index=False)
+                lang_results[lang]["failed_df"].to_excel(
+                    writer, sheet_name=f"failures_{lang}"[:31], index=False)
 
     print(f"\n✅ Combined final file saved: {final_path}")
     if total_failures > 0:

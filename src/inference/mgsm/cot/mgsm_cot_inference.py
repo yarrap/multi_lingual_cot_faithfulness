@@ -215,9 +215,10 @@ def call_with_retry(prompt: str, model=MODEL_NAME, max_retries=5) -> str:
             response = co.chat(
                 model=model,
                 messages=[{"role": "user", "content": prompt}],
-                max_tokens=2048,
-                temperature=0.0,
+                max_tokens=4096,
+                temperature=0.6,
             )
+            # 2048
             return response.message.content[0].text.strip()
         except Exception as e:
             error_str = str(e).lower()
