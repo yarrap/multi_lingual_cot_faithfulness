@@ -335,7 +335,7 @@ if __name__ == '__main__':
     p = argparse.ArgumentParser(
         description='Compute CoT vs Direct metrics per model and language for MGSM.'
     )
-    dataset_name = 'mgsm'
+    dataset_name = 'mmlu'
     p.add_argument('--cot-dir',    type=Path, default=Path(f'../../results/cot_inference/{dataset_name}'))
     p.add_argument('--direct-dir', type=Path, default=Path(f'../../results/direct_inference/{dataset_name}'))
     p.add_argument('--out-dir',    type=Path, default=Path(f'../../results/hypothesis_1/{dataset_name}'))
