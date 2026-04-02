@@ -1,0 +1,6 @@
+language,cot_accuracy (%),reinfer_accuracy (%),absolute_drop (%),relative_drop (%),matching_ratio (%),answer_flip_rate(%)
+en,72.4,24.0,48.4,66.85,51.6,70.0
+bn,55.2,12.8,42.4,76.81,58.4,76.8
+sw,55.2,14.4,40.8,73.91,58.0,73.2
+te,54.8,15.2,39.6,72.26,16.4,78.0
+zh,56.0,12.8,43.2,77.14,63.2,80.4
