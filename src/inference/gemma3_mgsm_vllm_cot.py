@@ -1,29 +1,9 @@
-
 """
 gemma3_mgsm_vllm_cot.py
 ========================
 MGSM CoT evaluation for Gemma-3-4B-IT using vLLM + 3-run majority voting.
-
-Key changes vs. the original HF script
-  • Replaced transformers model.generate() with vLLM LLM + SamplingParams
-  • Batched generation: all N questions per run sent in one llm.generate() call
-  • Majority-vote logic ported from the Qwen3 MMLU script (Counter-based,
-    with unanimous / majority / all_differ / no_answer status)
-  • Checkpoint / resume support (CSV) so a crash doesn't lose progress
-  • Output: per-language CSV + combined summary CSV
-
-Expected input files:
-    ../../datasets/mgsm_en.csv   (columns: question, answer)
-    ../../datasets/mgsm_bn.csv   … etc.
-
-Output:
-    ../../results/cot_inference/mgsm/gemma3-4b-vllm/cot_<lang>.csv
-    ../../results/cot_inference/mgsm/gemma3-4b-vllm/summary.csv
 """
 
-# ─────────────────────────────────────────────────────────────────
-# IMPORTS
-# ─────────────────────────────────────────────────────────────────
 import os
 import re
 import csv
@@ -33,19 +13,17 @@ from transformers import AutoTokenizer
 from vllm import LLM, SamplingParams
 
 # ─────────────────────────────────────────────────────────────────
-# CONFIG  ← edit to match your setup
+# CONFIG
 # ─────────────────────────────────────────────────────────────────
 HF_MODEL_ID  = "google/gemma-3-4b-it"
 MODEL_NAME   = "gemma3-4b-vllm"
 OUTPUT_DIR   = f"/content/results/{MODEL_NAME}"
 
-
-# Uncomment to run all languages:
 ALL_LANGUAGES = ["en", "sw", "te", "zh", "bn"]
 
-N_RUNS       = 3      # majority vote across this many independent generations
-MAX_TOKENS   = 512
-TEMPERATURE  = 0.0    # greedy — deterministic (set >0 for diverse runs)
+N_RUNS       = 3
+MAX_TOKENS   = 4096      # changed: was 512
+TEMPERATURE  = 0.6       # changed: was 0.0
 TOP_P        = 0.95
 GPU_MEM_UTIL = 0.90
 
@@ -60,7 +38,6 @@ LANG_TO_FULL_NAME = {
     "sw": "Swahili",
     "te": "Telugu",
     "zh": "Chinese",
-    
 }
 
 LANG_TO_DATA_PATH = {
@@ -69,7 +46,6 @@ LANG_TO_DATA_PATH = {
     "sw": "/content/mgsm_sw.csv",
     "te": "/content/mgsm_te.csv",
     "zh": "/content/mgsm_zh.csv",
-    
 }
 
 LANG_TO_INSTRUCTIONS = {
@@ -92,10 +68,6 @@ LANG_TO_INSTRUCTIONS = {
     "zh": """解决这个数学问题。在最后一行给出答案前，请提供推理步骤。最后一行应该以 "答案: " 的形式独立给出答案。在 "答案：" 后不要添加除整数答案之外的任何内容。
 
 {input}""",
-
-    "yo": """Yanju iṣoro iṣiro yii. Fun awọn igbesẹ ero ṣaaju fifun idahun ikẹhin lori laini ti o kẹhin funrararẹ ni ọna kika "Idahun:". Maṣe ṣafikun ohunkohun miiran ju idahun odidi odidi lẹhin "Idahun:".
-
-{input}""",
 }
 
 LANG_TO_ANSWER_PREFIX = {
@@ -104,12 +76,10 @@ LANG_TO_ANSWER_PREFIX = {
     "sw": "Jibu:",
     "te": "సమాధానం:",
     "zh": "答案:",
-    "yo": "Idahun:",
 }
 
 REQUIRED_COLS = ["question", "answer"]
 
-# Build interleaved output columns (same layout as Qwen MMLU script)
 _ITER_COLS: list[str] = []
 for _r in range(N_RUNS):
     _ITER_COLS += [
@@ -126,170 +96,224 @@ CKPT_COLS = (
 )
 
 # ─────────────────────────────────────────────────────────────────
-# ANSWER PARSER  (full multi-stage — ported from original script)
+# IMPROVED ANSWER PARSER
 # ─────────────────────────────────────────────────────────────────
+
+def normalize_number(s: str) -> str:
+    """
+    Normalize a numeric string:
+      - Remove thousands separators (, or ' or space-as-thousands)
+      - Strip trailing dot
+      - Convert unicode digits (Bengali, Telugu, Chinese, etc.) to ASCII
+    """
+    if not isinstance(s, str):
+        return ""
+
+    # Unicode digit normalization — covers Bengali, Telugu, Arabic-Indic, etc.
+    result = []
+    for ch in s:
+        cp = ord(ch)
+        # Bengali digits: 0x09E6–0x09EF
+        if 0x09E6 <= cp <= 0x09EF:
+            result.append(str(cp - 0x09E6))
+        # Telugu digits: 0x0C66–0x0C6F
+        elif 0x0C66 <= cp <= 0x0C6F:
+            result.append(str(cp - 0x0C66))
+        # Arabic-Indic digits: 0x0660–0x0669
+        elif 0x0660 <= cp <= 0x0669:
+            result.append(str(cp - 0x0660))
+        # Extended Arabic-Indic: 0x06F0–0x06F9
+        elif 0x06F0 <= cp <= 0x06F9:
+            result.append(str(cp - 0x06F0))
+        # Chinese/fullwidth digits: 0xFF10–0xFF19
+        elif 0xFF10 <= cp <= 0xFF19:
+            result.append(str(cp - 0xFF10))
+        else:
+            result.append(ch)
+    s = "".join(result)
+
+    # Remove thousands separators: comma, apostrophe, and unicode thin-space
+    s = re.sub(r"[,'\u202f\u00a0]", "", s)
+    # Strip currency / percent symbols that may wrap the number
+    s = s.replace("$", "").replace("₹", "").replace("€", "").replace("%", "").strip()
+    # Remove trailing dot (e.g. "42.")
+    s = s.rstrip(".")
+    return s
+
+
+def extract_numbers(text: str) -> list[str]:
+    """Return all numeric tokens (including decimals) from text, normalized."""
+    cleaned = normalize_number(text)
+    return re.findall(r"-?\d+\.?\d*", cleaned)
+
+
+def extract_boxed(line: str) -> str:
+    """Extract value from \\boxed{...}, resolving '=' chains."""
+    m = re.search(r'\\boxed\{([^}]+)\}', line)
+    if not m:
+        return ""
+    inner = m.group(1)
+    if "=" in inner:
+        inner = inner.split("=")[-1]
+    nums = extract_numbers(inner)
+    return nums[-1] if nums else ""
+
+
+def extract_inline_latex(line: str) -> str:
+    """Extract number from \\( ... \\) or \\[ ... \\] inline LaTeX."""
+    m = re.search(r'\\\(([^)]+)\\\)|\\\[([^\]]+)\\\]', line)
+    if not m:
+        return ""
+    inner = (m.group(1) or m.group(2) or "").strip()
+    nums = extract_numbers(inner)
+    return nums[-1] if nums else ""
+
+
+def find_prefix_line(lines: list[str], prefix: str) -> int:
+    """
+    Return index of the LAST line containing prefix (stripped of markdown bold).
+    Returns -1 if not found.
+    """
+    for i in range(len(lines) - 1, -1, -1):
+        clean = lines[i].replace("**", "").replace("__", "").strip()
+        if prefix in clean:
+            return i
+    return -1
+
 
 def parse_answer(cot_text: str, answer_prefix: str, lang: str = "") -> tuple[str, str]:
     """
-    Extract the numeric answer from a CoT string.
-    Returns (answer_str, parse_method).
+    Multi-stage answer extractor. Returns (answer_str, parse_method).
+
+    Stage order (all languages):
+      1. primary        — prefix + number on same line (last such line)
+      2. next_line_box  — prefix alone, \\boxed{} on next line
+      3. next_line_num  — prefix alone, plain number on next line
+      4. prefix_inline  — prefix line contains inline LaTeX \\(...\\)
+      5. bold_answer    — **<number>** pattern near end
+      6. boxed_tail     — \\boxed{} in last 8 lines
+      7. inline_tail    — inline LaTeX in last 8 lines
+      8. dollar_math    — $number$ pattern in last 8 lines
+      9. therefore      — "therefore"/"thus"/"hence" + number in last 8 lines
+     10. last_sentence  — last sentence of CoT containing a number
+     11. last_number    — absolute last number in entire CoT
+     12. failed
     """
-    if not isinstance(cot_text, str):
+    if not isinstance(cot_text, str) or not cot_text.strip():
         return "", "failed"
 
     lines = cot_text.strip().split("\n")
+    tail  = lines[-8:]  # last 8 lines for fallback stages
 
-    def extract_numbers(text: str) -> list[str]:
-        return re.findall(r"\d+\.?\d*", text.replace(",", ""))
+    # ── Chinese-specific normalization of full-width colons ───────────────
+    def normalize_zh(s: str) -> str:
+        return s.replace("：", ":").replace("︓", ":").replace("﹕", ":")
 
-    # ── Chinese-specific pre-pass ──────────────────────────────────────────
-    if lang == "zh":
-        def normalize_colons(s: str) -> str:
-            return s.replace("：", ":").replace("︓", ":")
+    effective_prefix = normalize_zh(answer_prefix) if lang == "zh" else answer_prefix
 
-        norm_prefix = normalize_colons(answer_prefix)
+    def line_has_prefix(line: str) -> bool:
+        clean = line.replace("**", "").replace("__", "").strip()
+        if lang == "zh":
+            return effective_prefix in normalize_zh(clean)
+        return effective_prefix in clean
 
-        for line in reversed(lines):
-            clean = line.replace("**", "").strip()
-            if answer_prefix in clean:
-                nums = extract_numbers(clean)
-                if nums:
-                    return nums[-1].rstrip("."), "primary"
-
-        for line in reversed(lines):
-            clean = line.replace("**", "").strip()
-            if norm_prefix in normalize_colons(clean):
-                nums = extract_numbers(clean)
-                if nums:
-                    return nums[-1].rstrip("."), "zh_fuzzy"
-
-        for line in reversed(lines):
-            if re.search(r'\*\*.*答案.*\*\*', line):
-                nums = extract_numbers(line)
-                if nums:
-                    return nums[-1].rstrip("."), "zh_bold_prefix"
-
-        def extract_boxed_zh(line: str) -> str:
-            m = re.search(r'\\boxed\{([^}]+)\}', line)
-            if not m:
-                return ""
-            inner = m.group(1)
-            if "=" in inner:
-                inner = inner.split("=")[-1]
-            nums = re.findall(r"\d+\.?\d*", inner.replace(",", ""))
-            return nums[-1].rstrip(".") if nums else ""
-
-        for i, line in enumerate(lines):
-            clean = line.replace("**", "").strip()
-            if norm_prefix in normalize_colons(clean) and i + 1 < len(lines):
-                val = extract_boxed_zh(lines[i + 1])
-                if val:
-                    return val, "next_line_box"
-
-        for i, line in enumerate(lines):
-            clean = line.replace("**", "").strip()
-            if norm_prefix in normalize_colons(clean) and i + 1 < len(lines):
-                next_line = lines[i + 1].replace("**", "").strip()
-                next_clean = next_line.replace("$", "").replace("₹", "").replace("%", "")
-                nums = extract_numbers(next_clean)
-                if nums:
-                    return nums[0].rstrip("."), "next_line_num"
-
-        for line in reversed(lines[-5:]):
-            val = extract_boxed_zh(line)
-            if val:
-                return val, "fallback_box"
-
-        all_nums = extract_numbers(cot_text)
-        if all_nums:
-            return all_nums[-1].rstrip("."), "last_number"
-
-        return "", "failed"
-
-    # ── Default — all languages except zh ─────────────────────────────────
-
-    def extract_boxed(line: str) -> str:
-        m = re.search(r'\\boxed\{([^}]+)\}', line)
-        if not m:
-            return ""
-        inner = m.group(1)
-        if "=" in inner:
-            inner = inner.split("=")[-1]
-        nums = re.findall(r"\d+\.?\d*", inner.replace(",", ""))
-        return nums[-1].rstrip(".") if nums else ""
-
-    def extract_inline_latex(line: str) -> str:
-        m = re.search(r'\\\(([^)]+)\\\)|\\\[([^\]]+)\\\]', line)
-        if not m:
-            return ""
-        inner = (m.group(1) or m.group(2) or "").strip()
-        nums = re.findall(r"\d+\.?\d*", inner.replace(",", ""))
-        return nums[-1].rstrip(".") if nums else ""
-
-    # Primary: answer_prefix + number on the same line
+    # ── Stage 1: primary ─────────────────────────────────────────────────
     for line in reversed(lines):
-        clean_line = line.replace("**", "").strip()
-        if answer_prefix in clean_line:
-            numbers = re.findall(r"\d+\.?\d*", clean_line.replace(",", ""))
-            if numbers:
-                return numbers[-1].rstrip("."), "primary"
+        if line_has_prefix(line):
+            nums = extract_numbers(line)
+            if nums:
+                return nums[-1], "primary"
 
-    # Fallback 1a: prefix on its own line → \\boxed{} on next line
+    # ── Stage 2: next_line_box ───────────────────────────────────────────
     for i, line in enumerate(lines):
-        clean_line = line.replace("**", "").strip()
-        if answer_prefix in clean_line and i + 1 < len(lines):
+        if line_has_prefix(line) and i + 1 < len(lines):
             val = extract_boxed(lines[i + 1])
             if val:
                 return val, "next_line_box"
 
-    # Fallback 1b: prefix on its own line → plain number on next line
+    # ── Stage 3: next_line_num ───────────────────────────────────────────
     for i, line in enumerate(lines):
-        clean_line = line.replace("**", "").strip()
-        if answer_prefix in clean_line and i + 1 < len(lines):
-            next_line = lines[i + 1].replace("**", "").strip()
-            next_clean = next_line.replace("$", "").replace("₹", "").replace("%", "")
-            numbers = re.findall(r"\d+\.?\d*", next_clean.replace(",", ""))
-            if numbers:
-                return numbers[0].rstrip("."), "next_line_num"
+        if line_has_prefix(line) and i + 1 < len(lines):
+            nums = extract_numbers(lines[i + 1])
+            if nums:
+                return nums[0], "next_line_num"
 
-    # Fallback 2: \\boxed{} anywhere in last 5 lines
-    for line in reversed(lines[-5:]):
+    # ── Stage 4: prefix_inline (LaTeX on same prefix line) ───────────────
+    for line in reversed(lines):
+        if line_has_prefix(line):
+            val = extract_inline_latex(line)
+            if val:
+                return val, "prefix_inline"
+
+    # ── Stage 5: bold_answer — **number** anywhere in tail ───────────────
+    for line in reversed(tail):
+        # Match **digits** with optional surrounding text
+        bold_nums = re.findall(r'\*\*\s*(-?\d[\d,\.]*)\s*\*\*', line.replace(",", ""))
+        if bold_nums:
+            return normalize_number(bold_nums[-1]), "bold_answer"
+
+    # ── Stage 6: boxed_tail ──────────────────────────────────────────────
+    for line in reversed(tail):
         val = extract_boxed(line)
         if val:
-            return val, "fallback_box"
+            return val, "boxed_tail"
 
-    # Fallback 3: inline LaTeX \\( num \\) in last 5 lines
-    for line in reversed(lines[-5:]):
+    # ── Stage 7: inline_tail ─────────────────────────────────────────────
+    for line in reversed(tail):
         val = extract_inline_latex(line)
         if val:
-            return val, "fallback_inline_latex"
+            return val, "inline_tail"
 
-    # Fallback 4: bold answer pattern **number** in last 5 lines
-    for line in reversed(lines[-5:]):
-        bold_nums = re.findall(r'\*\*[^*]*?(\d+\.?\d*)[^*]*?\*\*', line.replace(",", ""))
-        if bold_nums:
-            return bold_nums[-1].rstrip("."), "fallback_bold"
+    # ── Stage 8: dollar_math — $number$ in tail ──────────────────────────
+    for line in reversed(tail):
+        dollar_nums = re.findall(r'\$\s*(-?[\d,\.]+)\s*\$', line)
+        if dollar_nums:
+            val = normalize_number(dollar_nums[-1])
+            if val:
+                return val, "dollar_math"
 
-    # Fallback 5: last number in entire CoT
-    all_nums = re.findall(r"\d+\.?\d*", cot_text.replace(",", ""))
+    # ── Stage 9: therefore/thus/hence + number in tail ───────────────────
+    conclusion_re = re.compile(
+        r'(?:therefore|thus|hence|so|总共|因此|所以|अतः|కాబట్టి|kwa hivyo|nitorina)'
+        r'.{0,80}?(-?\d[\d,\.]*)',
+        re.IGNORECASE
+    )
+    for line in reversed(tail):
+        m = conclusion_re.search(line)
+        if m:
+            val = normalize_number(m.group(1))
+            if val:
+                return val, "therefore"
+
+    # ── Stage 10: last sentence with a number ────────────────────────────
+    # Split on sentence boundaries and scan from the end
+    sentences = re.split(r'(?<=[.!?।。])\s+', cot_text.strip())
+    for sent in reversed(sentences):
+        nums = extract_numbers(sent)
+        if nums:
+            return nums[-1], "last_sentence"
+
+    # ── Stage 11: absolute last number in CoT ────────────────────────────
+    all_nums = extract_numbers(cot_text)
     if all_nums:
-        return all_nums[-1].rstrip("."), "last_number"
+        return all_nums[-1], "last_number"
 
     return "", "failed"
 
 
 # ─────────────────────────────────────────────────────────────────
-# VOTING HELPERS  (ported from Qwen3 MMLU script)
+# VOTING HELPERS
 # ─────────────────────────────────────────────────────────────────
 
 def answers_are_equal(extracted: str, expected: str) -> bool:
+    """Numeric equality check; falls back to string match."""
     try:
         return (
-            float(str(extracted).replace(",", "").strip())
-            == float(str(expected).replace(",", "").strip())
+            float(normalize_number(str(extracted)).strip())
+            == float(normalize_number(str(expected)).strip())
         )
     except (ValueError, TypeError):
-        return False
+        return str(extracted).strip() == str(expected).strip()
 
 
 def majority_vote(answers: list[str]) -> tuple[str, str]:
@@ -308,11 +332,11 @@ def majority_vote(answers: list[str]) -> tuple[str, str]:
     elif top_count > 1:
         return top_answer, "majority"
     else:
-        return valid[0], "all_differ"   # fall back to run-1
+        return valid[0], "all_differ"
 
 
 # ─────────────────────────────────────────────────────────────────
-# LOAD MODEL  (once, shared across all languages)
+# LOAD MODEL
 # ─────────────────────────────────────────────────────────────────
 print(f"\nLoading tokenizer : {HF_MODEL_ID}")
 tokenizer = AutoTokenizer.from_pretrained(HF_MODEL_ID)
@@ -342,7 +366,6 @@ def run_inference_for_lang(lang: str) -> dict:
     output_path   = os.path.join(OUTPUT_DIR, f"cot_{lang}.csv")
     ckpt_path     = os.path.join(OUTPUT_DIR, f"cot_{lang}_checkpoint.csv")
 
-    # ── Skip if already complete ──────────────────────────────────────────
     if os.path.exists(output_path):
         existing = pd.read_csv(output_path)
         if len(existing) > 0:
@@ -359,7 +382,6 @@ def run_inference_for_lang(lang: str) -> dict:
                 "output_file":    output_path,
             }
 
-    # ── Load & validate ───────────────────────────────────────────────────
     df = pd.read_csv(LANG_TO_DATA_PATH[lang])
     missing = [c for c in REQUIRED_COLS if c not in df.columns]
     if missing:
@@ -367,7 +389,6 @@ def run_inference_for_lang(lang: str) -> dict:
     df = df[REQUIRED_COLS].copy().reset_index(drop=True)
     num_rows = len(df)
 
-    # ── Resume from checkpoint ────────────────────────────────────────────
     completed_indices: set[int] = set()
     if os.path.exists(ckpt_path):
         ckpt_existing = pd.read_csv(ckpt_path)
@@ -383,7 +404,6 @@ def run_inference_for_lang(lang: str) -> dict:
     print(f"{'='*60}")
 
     if remaining_indices:
-        # ── Build chat-formatted prompts ──────────────────────────────────
         chat_prompts = [
             tokenizer.apply_chat_template(
                 [{"role": "user",
@@ -396,15 +416,12 @@ def run_inference_for_lang(lang: str) -> dict:
             for i in remaining_indices
         ]
 
-        # ── N_RUNS batched generations ────────────────────────────────────
-        # run_outputs[run] = list of texts aligned with remaining_indices
         run_outputs: list[list[str]] = []
         for run in range(N_RUNS):
             print(f"  Run {run+1}/{N_RUNS} — generating {len(chat_prompts)} responses …")
             vllm_out = llm.generate(chat_prompts, sampling_params)
             run_outputs.append([o.outputs[0].text.strip() for o in vllm_out])
 
-        # ── Write checkpoint rows ─────────────────────────────────────────
         write_header = not os.path.exists(ckpt_path)
         with open(ckpt_path, "a", newline="", encoding="utf-8") as ckpt_file:
             writer = csv.DictWriter(
@@ -453,10 +470,8 @@ def run_inference_for_lang(lang: str) -> dict:
                 writer.writerow(ckpt_row)
                 ckpt_file.flush()
 
-    # ── Build final dataframe from checkpoint ─────────────────────────────
     result_df = pd.read_csv(ckpt_path)
 
-    # Parse method breakdown
     all_methods: list[str] = []
     for r in range(N_RUNS):
         all_methods.extend(result_df[f"parse_method_run{r+1}"].tolist())
@@ -470,7 +485,6 @@ def run_inference_for_lang(lang: str) -> dict:
         print(f"  {method:20s}: {count:3d}  ({count/total_calls*100:.1f}%)")
     print(f"  → Parse failures: {failed_calls}/{total_calls} ({failed_calls/total_calls*100:.1f}%)")
 
-    # Per-run + majority accuracy
     total = len(result_df)
     print(f"\n[{lang.upper()}] ACCURACY:")
     for r in range(N_RUNS):
@@ -479,13 +493,11 @@ def run_inference_for_lang(lang: str) -> dict:
     majority_acc = int(result_df["majority_correct"].sum())
     print(f"  Majority vote: {majority_acc}/{total} = {majority_acc/total:.1%}")
 
-    # Vote status breakdown
     status_counts = result_df["vote_status"].value_counts()
     print(f"\n[{lang.upper()}] VOTE STATUS:")
     for status, count in status_counts.items():
         print(f"  {status:12s}: {count} questions")
 
-    # ── Failed parse details ──────────────────────────────────────────────
     failed_rows: list[dict] = []
     for i, row in result_df.iterrows():
         for r in range(N_RUNS):
@@ -512,12 +524,10 @@ def run_inference_for_lang(lang: str) -> dict:
     else:
         print(f"\n[{lang.upper()}] All calls parsed successfully.")
 
-    # ── Save final CSV ────────────────────────────────────────────────────
-    result_df = result_df[CKPT_COLS]   # enforce column order
+    result_df = result_df[CKPT_COLS]
     result_df.to_csv(output_path, index=False, quoting=1)
     print(f"\nSaved: {output_path}")
 
-    # Remove checkpoint now that final CSV is written
     if os.path.exists(ckpt_path):
         os.remove(ckpt_path)
 
@@ -542,7 +552,6 @@ if __name__ == "__main__":
         result = run_inference_for_lang(lang)
         summary_rows.append(result)
 
-    # ── Summary CSV ───────────────────────────────────────────────────────
     summary_df   = pd.DataFrame(summary_rows).sort_values("language")
     summary_path = os.path.join(OUTPUT_DIR, "summary.csv")
     summary_df.to_csv(summary_path, index=False)
