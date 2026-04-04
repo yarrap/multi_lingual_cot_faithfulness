@@ -1,0 +1,6 @@
+language,code,correct,total,accuracy,parse_failures,output_file
+Bengali,bn,162,250,64.8%,0,/content/results/gemma3-4b-vllm/cot_bn.csv
+Chinese,zh,179,250,71.6%,0,/content/results/gemma3-4b-vllm/cot_zh.csv
+English,en,226,250,90.4%,0,/content/results/gemma3-4b-vllm/cot_en.csv
+Swahili,sw,136,250,54.4%,0,/content/results/gemma3-4b-vllm/cot_sw.csv
+Telugu,te,163,250,65.2%,0,/content/results/gemma3-4b-vllm/cot_te.csv
