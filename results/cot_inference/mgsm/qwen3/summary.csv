@@ -1,0 +1,6 @@
+language,code,correct,total,accuracy,parse_failures,output_file
+Bengali,bn,178,250,71.2%,0,/content/results/qwen3-4b-vllm/cot_bn.csv
+Chinese,zh,219,250,87.6%,0,/content/results/qwen3-4b-vllm/cot_zh.csv
+English,en,234,250,93.6%,0,/content/results/qwen3-4b-vllm/cot_en.csv
+Swahili,sw,52,250,20.8%,0,/content/results/qwen3-4b-vllm/cot_sw.csv
+Telugu,te,156,250,62.4%,0,/content/results/qwen3-4b-vllm/cot_te.csv
