@@ -205,7 +205,7 @@ def process_folder(input_folder: str, output_file: str):
 
 
 def main():
-    model_name = 'tiny-aya-earth'
+    model_name = 'tiny-aya-water'
     dataset_name = 'mgsm'
     inference_type = 'cot_inference'
 

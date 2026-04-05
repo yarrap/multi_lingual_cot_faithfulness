@@ -87,8 +87,8 @@ def process_folder(input_folder: str, output_file: str):
 
 def main():
 	ap = argparse.ArgumentParser()
-	model_name = 'tiny-aya-earth'
-	dataset_name = 'mmlu'
+	model_name = 'tiny-aya-global'
+	dataset_name = 'mgsm'
 	inference_type = 'direct_inference'
 	# Resolve defaults relative to the repository root (two parents above `src`)
 	repo_root = Path(__file__).resolve().parents[2]
