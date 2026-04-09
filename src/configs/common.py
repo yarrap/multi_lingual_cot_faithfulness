@@ -7,7 +7,7 @@ API_KEY = os.getenv("COHERE_API_KEY")
 if not API_KEY:
     raise ValueError("COHERE_API_KEY not found in .env file")
 
-MODEL_NAME = "tiny-aya-water"
+MODEL_NAME = "tiny-aya-global"
 
 # Base Path Logic
 CONFIG_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -24,7 +24,7 @@ MGSM_INFERENCE_DIR = os.path.join(RESULTS_DIR, "cot_inference", "mgsm", MODEL_NA
 MMLU_PERTURBATION_DIR = os.path.join(RESULTS_DIR, "truncation_perturbation", "mmlu", MODEL_NAME)
 
 ALL_LANGUAGES = ["bn", "sw", "te", "zh", "en"]
-# , "bn", "sw", "te", "zh", "en"
+# , "bn", "sw", "te", "zh", "en" upto sw done
 
 LANG_TO_FULL_NAME = {
     "en": "English",
