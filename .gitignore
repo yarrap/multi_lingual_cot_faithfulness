@@ -33,6 +33,12 @@ results/direct_inference/mgsm/tiny-aya-water/old
 src/inference/mgsm/direct/mgsm_direct_inference1.py
 src/inference/mgsm/cot/mgsm_cot_inferencetrash.py
 src/post_processing/cot_post_processing_script1.py
+src/inference/mmlu/cot/mmlu_cot_inference1.py
+src/post_processing/parsing_fix.py
+src/post_processing/repair_missing_parses_qwen.py
+src/post_processing/repair_missing_parses.py
+results/cot_inference/mmlu/tiny-aya-global/old
+
 
 # Python
 __pycache__/
