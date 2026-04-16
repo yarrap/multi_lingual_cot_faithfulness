@@ -41,7 +41,7 @@ results/cot_inference/mmlu/tiny-aya-global/old
 results/cot_inference/mmlu/tiny-aya-earth/old
 results/cot_inference/mmlu/tiny-aya-fire/old
 results/cot_inference/mmlu/tiny-aya-water/old
-
+results/cot_inference/mmlu/final/old
 
 # Python
 __pycache__/
