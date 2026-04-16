@@ -38,6 +38,9 @@ src/post_processing/parsing_fix.py
 src/post_processing/repair_missing_parses_qwen.py
 src/post_processing/repair_missing_parses.py
 results/cot_inference/mmlu/tiny-aya-global/old
+results/cot_inference/mmlu/tiny-aya-earth/old
+results/cot_inference/mmlu/tiny-aya-fire/old
+results/cot_inference/mmlu/tiny-aya-water/old
 
 
 # Python
