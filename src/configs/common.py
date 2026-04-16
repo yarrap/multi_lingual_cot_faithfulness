@@ -7,7 +7,7 @@ API_KEY = os.getenv("COHERE_API_KEY")
 if not API_KEY:
     raise ValueError("COHERE_API_KEY not found in .env file")
 
-MODEL_NAME = "tiny-aya-global"
+MODEL_NAME = "tiny-aya-water"
 
 # Base Path Logic
 CONFIG_DIR = os.path.dirname(os.path.abspath(__file__))

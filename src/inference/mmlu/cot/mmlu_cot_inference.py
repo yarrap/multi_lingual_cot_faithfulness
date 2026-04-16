@@ -15,7 +15,7 @@ co = cohere.ClientV2(API_KEY)
 OUTPUT_DIR = mmlu.OUTPUT_DIR
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-MAX_WORKERS = 3  # tune based on your Cohere rate limit tier
+MAX_WORKERS = 10  # tune based on your Cohere rate limit tier
 
 print_lock = threading.Lock()
 
@@ -96,6 +96,7 @@ def call_with_retry(prompt: str, model=MODEL_NAME, max_retries=5) -> str:
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=4096,
                 temperature=0.6,
+                # repetition_penalty=1.2,
             )
             return response.message.content[0].text.strip()
         except Exception as e:
