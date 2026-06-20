@@ -14,8 +14,12 @@ results/direct_inference/mgsm/old/
 src/evals/cot-tiny-aya-water-last2.ipynb
 cot_faithfulness_truncate_all.ipynb
 results/tests/new
-results/cot_inference/mmlu/gemma3/old
-results/cot_inference/mmlu/qwen3/old
+results/cot_inference/mmlu/gemma3/
+results/cot_inference/mmlu/qwen3/
+results/cot_inference/mmlu/tiny-aya-earth/
+results/cot_inference/mmlu/tiny-aya-fire/
+results/cot_inference/mmlu/tiny-aya-global/
+results/cot_inference/mmlu/tiny-aya-water/
 results/cot_inference/mgsm/final/old
 results/cot_inference/mgsm/gemma3/old
 results/cot_inference/mgsm/qwen3/old
@@ -36,10 +40,10 @@ src/inference/mmlu/cot/mmlu_cot_inference1.py
 src/post_processing/parsing_fix.py
 src/post_processing/repair_missing_parses_qwen.py
 src/post_processing/repair_missing_parses.py
-results/cot_inference/mmlu/tiny-aya-global/old
-results/cot_inference/mmlu/tiny-aya-earth/old
-results/cot_inference/mmlu/tiny-aya-fire/old
-results/cot_inference/mmlu/tiny-aya-water/old
+# results/cot_inference/mmlu/tiny-aya-global/old
+# results/cot_inference/mmlu/tiny-aya-earth/old
+# results/cot_inference/mmlu/tiny-aya-fire/old
+# results/cot_inference/mmlu/tiny-aya-water/old
 results/cot_inference/mmlu/final/old
 results/cot_inference/mmlu/final/ignore
 src/post_processing/optional
